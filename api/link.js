@@ -1,12 +1,12 @@
-// GET  /api/link                         → { link, link2, auto, active }  (admin only)
-// POST /api/link {link?, link2?, auto?}  → saves (admin only); link2 '' = rotation off
+// GET  /api/link                → { link, auto }  (admin only)
+// POST /api/link {link?, auto?} → saves (admin only)
 // Auth: header "x-admin-password" must equal env ADMIN_PASSWORD
 const crypto = require('crypto');
-const { getLink, setLink, getLink2, setLink2, activeSlot, getAuto, setAuto, isValidWaLink } = require('./_store');
+const { getLink, setLink, getAuto, setAuto, isValidTgLink } = require('./_store');
 
 async function state() {
-  const [link, link2, auto] = await Promise.all([getLink(), getLink2(), getAuto()]);
-  return { link, link2, auto, active: activeSlot(!!link2) };
+  const [link, auto] = await Promise.all([getLink(), getAuto()]);
+  return { link, auto };
 }
 
 function authorized(req) {
@@ -45,17 +45,10 @@ module.exports = async (req, res) => {
     try {
       if (body.link !== undefined) {
         const clean = String(body.link || '').trim();
-        if (!isValidWaLink(clean)) {
-          return json(res, 400, { error: 'সঠিক WhatsApp লিংক দিন (https://chat.whatsapp.com/...)' });
+        if (!isValidTgLink(clean)) {
+          return json(res, 400, { error: 'সঠিক Telegram লিংক দিন (https://t.me/...)' });
         }
         await setLink(clean);
-      }
-      if (body.link2 !== undefined) {
-        const clean2 = String(body.link2 || '').trim(); // empty = rotation off
-        if (clean2 && !isValidWaLink(clean2)) {
-          return json(res, 400, { error: 'লিংক ২ সঠিক নয় (https://chat.whatsapp.com/...) — না চাইলে খালি রাখুন' });
-        }
-        await setLink2(clean2);
       }
       if (body.auto !== undefined) await setAuto(!!body.auto);
       return json(res, 200, { ok: true, ...(await state()) });

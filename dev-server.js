@@ -17,6 +17,10 @@ const pages = { '/': 'index.html', '/admin': 'admin.html', '/admin.html': 'admin
 http.createServer(async (req, res) => {
   const p = new URL(req.url, 'http://x').pathname;
   if (routes[p]) return routes[p](req, res);
+  if (p === '/logo.png' || p === '/favicon.png') {
+    res.setHeader('Content-Type', 'image/png');
+    return res.end(fs.readFileSync(path.join(__dirname, p)));
+  }
   if (pages[p]) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.end(fs.readFileSync(path.join(__dirname, pages[p])));

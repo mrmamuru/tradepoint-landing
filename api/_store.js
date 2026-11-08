@@ -1,10 +1,13 @@
 // Shared storage helper — uses Upstash Redis REST API (Vercel Marketplace → "Upstash for Redis").
 // Vercel auto-adds KV_REST_API_URL + KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_URL/TOKEN) when you connect it.
+// Keys are prefixed "tg_" so this site can safely share the same Redis DB with the WhatsApp site.
 const fs = require('fs');
 const path = require('path');
 
 const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const DEFAULT_LINK = process.env.DEFAULT_TG_LINK || 'https://t.me/tradepoint_global';
 
 // Local dev fallback: no KV configured → store in a JSON file
 const LOCAL = (!URL_ || !TOKEN) && !!process.env.LOCAL_DEV;
@@ -38,40 +41,26 @@ async function setVal(key, val) {
   await redis(['SET', key, val]);
 }
 
-async function getLink() {
-  return (await getVal('wa_link')) || process.env.DEFAULT_WA_LINK || '';
-}
-const setLink = (link) => setVal('wa_link', link);
-
-// Optional 2nd link — when set, the landing page alternates between link 1 and link 2 every hour
-async function getLink2() { return (await getVal('wa_link2')) || ''; }
-const setLink2 = (link) => setVal('wa_link2', link);
-
-// Which link is live right now: 1 or 2 (switches on every clock hour)
-function activeSlot(hasLink2, now = Date.now()) {
-  return hasLink2 && Math.floor(now / 3600000) % 2 === 1 ? 2 : 1;
-}
-async function getActiveLink() {
-  const [l1, l2] = await Promise.all([getLink(), getLink2()]);
-  if (!l1) return l2;
-  return activeSlot(!!l2) === 2 ? l2 : l1;
-}
+// Main Telegram link — falls back to the public channel, so the site works even before admin saves anything
+async function getLink() { return (await getVal('tg_link')) || DEFAULT_LINK; }
+const setLink = (link) => setVal('tg_link', link);
 
 // Auto-redirect: default ON when never set
 async function getAuto() {
-  const v = await getVal('auto_redirect');
+  const v = await getVal('tg_auto_redirect');
   return v === null ? true : String(v) === '1';
 }
-const setAuto = (on) => setVal('auto_redirect', on ? '1' : '0');
+const setAuto = (on) => setVal('tg_auto_redirect', on ? '1' : '0');
 
-function isValidWaLink(link) {
+function isValidTgLink(link) {
   try {
     const u = new URL(link);
     return u.protocol === 'https:' &&
-      ['chat.whatsapp.com', 'wa.me', 'api.whatsapp.com', 'whatsapp.com', 'www.whatsapp.com'].includes(u.hostname);
+      ['t.me', 'telegram.me', 'www.telegram.me', 'telegram.dog'].includes(u.hostname) &&
+      u.pathname.length > 1;
   } catch {
     return false;
   }
 }
 
-module.exports = { getLink, setLink, getLink2, setLink2, activeSlot, getActiveLink, getAuto, setAuto, isValidWaLink };
+module.exports = { getLink, setLink, getAuto, setAuto, isValidTgLink };
