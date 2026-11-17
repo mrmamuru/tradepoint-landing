@@ -7,7 +7,7 @@ const path = require('path');
 const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const DEFAULT_LINK = process.env.DEFAULT_TG_LINK || 'https://t.me/tradepoint_global';
+const DEFAULT_LINK = process.env.DEFAULT_TG_LINK || 'https://t.me/trade_point_official';
 
 // Local dev fallback: no KV configured → store in a JSON file
 const LOCAL = (!URL_ || !TOKEN) && !!process.env.LOCAL_DEV;

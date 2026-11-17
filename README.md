@@ -2,7 +2,7 @@
 
 - `/` → Landing page (FB ads-এর লিংক এটা). ৩ সেকেন্ড পর অটো Telegram চ্যানেলে যায়, বাটনেও যায়।
 - `/admin` → পাসওয়ার্ড দিয়ে Telegram লিংক পরিবর্তন।
-- `/api/go` → সবসময় বর্তমান Telegram লিংকে redirect করে। কিছু সেভ না করলেও ডিফল্ট `https://t.me/tradepoint_global`।
+- `/api/go` → সবসময় বর্তমান Telegram লিংকে redirect করে। কিছু সেভ না করলেও ডিফল্ট `https://t.me/trade_point_official`।
 
 ## Vercel-এ Setup (একবারই)
 1. GitHub repo-টা Vercel-এ Import করুন (Framework: **Other**)।
